@@ -8,24 +8,31 @@ on:
 jobs:
   redeploy:
     runs-on: ubuntu-latest
+    environment: secrets
+
     steps:
       # Step 1: Check out the code
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Step 2: Set up kubectl (add AWS CLI if using EKS)
       - name: Set up Kubernetes
-        uses: azure/setup-kubectl@v1
+        uses: azure/setup-kubectl@v3
         with:
-          kubectl-version: "latest"
+          version: "v1.28.0"
 
       # Step 3: Configure AWS credentials for EKS (only needed for AWS EKS)
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: "ap-south-1"
+
+      # Step 4: Update kubeconfig
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ap-south-1 --name my-app
 
       # Step 4: Apply YAML changes to Kubernetes
       - name: Apply Kubernetes Configurations
